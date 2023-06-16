@@ -51,4 +51,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Acknowledgements
 
-DocumentGPT is built using Streamlit, OpenAI Chat API, and various open-source libraries. We would like to acknowledge the contributions of the developers and contributors of these libraries.
+DocumentGPT is built using Streamlit, OpenAI Chat API, Langchain and various open-source libraries. We would like to acknowledge the contributions of the developers and contributors of these libraries.
