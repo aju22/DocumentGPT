@@ -1,0 +1,7 @@
+streamlit==1.23.1
+streamlit-extras==0.2.7
+openai==0.27.8
+langchain==0.0.200
+pypdf==3.9.1
+tiktoken==0.4.0
+faiss-cpu==1.7.4
