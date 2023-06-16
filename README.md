@@ -41,6 +41,13 @@ Here are some areas for further improvement in DocumentGPT:
 - **Internet Access for Chatbot**: Enable the AI chatbot to access the internet for retrieving real-time information, which can enhance the chatbot's responses and provide up-to-date references.
 - **Improved User Interface**: Enhance the user interface
 
+## Demo
+
+You can try out the chatbot by visiting the deployed app on Streamlit Cloud:
+[Deployed App](https://aju22-documentgpt-app-zxpzom.streamlit.app/)
+
+*Note: Some features will not work on certain browsers like Chrome.*
+
 ## Contributing
 
 Contributions to DocumentGPT are welcome! If you have any feedback, suggestions, or bug reports, please create an issue in the GitHub repository. You can also contribute to the project by submitting pull requests with your enhancements.
