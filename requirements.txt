@@ -5,3 +5,4 @@ langchain==0.0.200
 pypdf==3.9.1
 tiktoken==0.4.0
 faiss-cpu==1.7.4
+youtube_search==2.1.2
