@@ -38,7 +38,7 @@ Here are some areas for further improvement in DocumentGPT:
 
 - **Token Streaming**: Implement token streaming to handle long conversations more efficiently, allowing for extended interactions without limitations.
 - **Enhanced Document Citations**: Improve the interface for showing document citations by including more metadata.
-- **Internet Access for Chatbot**: Enable the AI chatbot to access the internet for retrieving real-time information, which can enhance the chatbot's responses and provide up-to-date references.
+- **Agents**: Enable several plugins like google search and other features within the chatbot.
 - **Improved User Interface**: Enhance the user interface
 
 ## Demo
