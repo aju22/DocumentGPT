@@ -46,7 +46,7 @@ Here are some areas for further improvement in DocumentGPT:
 You can try out the chatbot by visiting the deployed app on Streamlit Cloud:
 [Deployed App](https://aju22-documentgpt-app-zxpzom.streamlit.app/)
 
-*Note: Some features will not work on certain browsers like Chrome.*
+*Note: Unfortunately PDF Display only works on certain browsers like Safari, Firefox :(.*
 
 ## Contributing
 
