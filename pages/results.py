@@ -280,7 +280,7 @@ with tab3:
             add_vertical_space(5)
 
 with tab4:
-    st.title("Chatbot 🤖")
+    st.subheader("Chatbot")
 
     st.session_state.chat_placeholder = st.container()
     prompt_placeholder = st.form("chat-form")
