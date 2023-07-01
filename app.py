@@ -32,7 +32,7 @@ def sidebar():
     with st.sidebar:
         st.markdown(
             "## How to use\n"
-            "1. Enter your [OpenAI API key](https://platform.openai.com/account/api-keys) below🔑\n"  # noqa: E501
+            "1. Enter [OpenAI API key](https://platform.openai.com/account/api-keys) below🔑\n"  # noqa: E501
             "2. Upload a PDF file📄\n"
         )
         api_key_input = st.text_input(
@@ -47,15 +47,13 @@ def sidebar():
             set_openai_api_key(api_key_input)
 
         st.markdown("---")
-        st.markdown("# About")
+        st.markdown("# What is DocumentGPT?")
         st.markdown(
             "This tool allows you to chat with your "
             "documents as well as directly get Google and Youtube search results. "
         )
         st.markdown(
-            "This tool is a work in progress. "
-            "You can contribute to the project on [GitHub](https://github.com/aju22) "
-            "with your feedback and suggestions💡"
+            "Contribute to the project on [GitHub](https://github.com/aju22) 💡"
         )
         st.markdown("Made by [Arjun](https://twitter.com/ArjunKr81620614)")
         st.markdown("---")
