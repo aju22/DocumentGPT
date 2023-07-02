@@ -49,8 +49,9 @@ def sidebar():
         st.markdown("---")
         st.markdown("# What is DocumentGPT?")
         st.markdown(
-            "This tool allows you to chat with your "
-            "documents as well as directly get Google and Youtube search results. "
+            "Sit down, read and chat with your documents"
+            "as well as directly get Google and Youtube search results,"
+            "served right into the app."
         )
         st.markdown(
             "Contribute to the project on [GitHub](https://github.com/aju22) 💡"
