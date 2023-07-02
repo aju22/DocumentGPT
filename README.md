@@ -15,7 +15,7 @@ DocumentGPT is a web application that allows you to chat over your research docu
   
 - **Display PDF**: ![](imgs/pdf.jpg)
   
-- **ChatBot**: ![](imgs/chat.jpg)
+- 
   
 - **Show Google Results**: ![](imgs/google.jpg)
   
