@@ -12,8 +12,6 @@ DocumentGPT is a web application that allows you to chat over your research docu
 - Easy-to-use interface with multiple pages for a smooth user experience.
 
 ## Screenshots
-
-- **Main Page**: ![](imgs/main.jpg)
   
 - **Display PDF**: ![](imgs/pdf.jpg)
   
@@ -22,7 +20,6 @@ DocumentGPT is a web application that allows you to chat over your research docu
 - **Show Google Results**: ![](imgs/google.jpg)
   
 - **Show Youtube Results**: ![](imgs/youtube.jpg)
-
 
 ## How to Use
 
@@ -58,4 +55,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Acknowledgements
 
-DocumentGPT is built using Streamlit, OpenAI Chat API, Langchain and various open-source libraries. We would like to acknowledge the contributions of the developers and contributors of these libraries.
+DocumentGPT is built using Streamlit, OpenAI Chat API, Langchain and various open-source libraries. I would like to acknowledge the contributions of the developers and contributors of these libraries.
