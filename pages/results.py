@@ -49,6 +49,8 @@ class State:
             st.session_state.memory = []
         if "search_keywords" not in st.session_state:
             st.session_state.search_keywords = []
+        if "sources" not in st.session_state:
+            st.session_state.sources = []
         if "token_count" not in st.session_state:
             st.session_state.token_count = 0
         if "chat_placeholder" not in st.session_state:
@@ -103,7 +105,7 @@ class ConversationalBot:
             retriever=st.session_state.vector_store.as_retriever(),
             combine_docs_chain=doc_chain,
             question_generator=question_generator,
-            return_source_documents=False,
+            return_source_documents=True,
             # verbose=True
         )
 
@@ -113,7 +115,6 @@ class ConversationalBot:
 
         with get_openai_callback() as cb:
             st.session_state.token_count += cb.total_tokens
-            print(f"Total tokens: {st.session_state.token_count}")
 
             with st.session_state.chat_placeholder:
                 human = st.chat_message("user")
@@ -126,18 +127,25 @@ class ConversationalBot:
 
             return self.conversation(
                 {"question": st.session_state.human_prompt, "chat_history": st.session_state.memory}
-            )['answer']
+            )
+
+    def clear_conversation(self):
+
+        st.session_state.memory = []
+        st.session_state.history = []
+        st.session_state.search_keywords = []
+        st.session_state.sources = []
 
     def store_conversation(self, llm_response):
 
-        st.session_state.memory.append((st.session_state.human_prompt, llm_response))
+        st.session_state.memory.append((st.session_state.human_prompt, llm_response['answer']))
         st.session_state.search_keywords += self.get_keywords()
 
         st.session_state.history.append(
             Message("human", st.session_state.human_prompt)
         )
         st.session_state.history.append(
-            Message("ai", llm_response)
+            Message("ai", llm_response["answer"])
         )
 
         st.session_state.human_prompt = ""
@@ -145,7 +153,13 @@ class ConversationalBot:
         st.session_state.memory = st.session_state.memory[-3:]
         st.session_state.search_keywords = st.session_state.search_keywords[-5:]
 
-        print(f"Search keywords: {st.session_state.search_keywords}")
+    def store_sources(self, llm_response):
+
+        st.session_state.sources = []
+
+        for document in llm_response['source_documents']:
+            source_text = f"{document.page_content}\n\nPage Number: {document.metadata['page_number']}\nChunk: {document.metadata['chunk']}"
+            st.session_state.sources.append(source_text)
 
     def get_keywords(self):
 
@@ -153,8 +167,8 @@ class ConversationalBot:
         keyword_list = []
 
         for human_prompt, llm_response in st.session_state.memory:
-            conversation += human_prompt + "\n"
-            conversation += llm_response + "\n"
+            conversation += "Human: " + human_prompt + "\n"
+            conversation += "AI: " + llm_response + "\n"
 
         openai.api_key = st.session_state['openai_api_key']
 
@@ -189,6 +203,7 @@ class ConversationalBot:
 
         llm_response = self.run_chain()
         self.store_conversation(llm_response)
+        self.store_sources(llm_response)
 
 
 def run_html():
@@ -309,6 +324,15 @@ with tab4:
             type="primary",
             on_click=bot.run_callback,
         )
+
+    st.button("Clear Chat",
+              on_click=bot.clear_conversation,
+              )
+
+    with st.expander("View Sources"):
+        for source in st.session_state.sources:
+            st.divider()
+            st.write(source)
 
     run_html()
 
