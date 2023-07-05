@@ -4,12 +4,10 @@ from streamlit_extras.switch_page_button import switch_page
 from FileReader.pdfFile import PDFDBStore
 
 
-@st.cache_resource
 def save_bytes(uploaded_file):
     st.session_state.pdf_bytes = uploaded_file.getvalue()
 
 
-@st.cache_resource
 def save_vector_store(_db):
     st.session_state.vector_store, st.session_state.document_chunks = _db.get_vectorDB(return_docs=True)
 
