@@ -1,8 +1,13 @@
 streamlit==1.24.0
 streamlit-extras==0.2.7
 openai==0.27.8
-langchain==0.0.200
+langchain==0.0.223
 pypdf==3.9.1
 tiktoken==0.4.0
 faiss-cpu==1.7.4
 youtube_search==2.1.2
+aiohttp~=3.8.4
+pydantic~=1.10.9
+google-search-results~=2.4.2
+jusText~=3.0.0
+requests~=2.31.0
