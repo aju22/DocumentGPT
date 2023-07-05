@@ -101,7 +101,6 @@ class ConversationalAgent:
         observations and answers you found, exactly as it is. 
         Only when you cannot gather enough information from the 
         document, to gather in-depth knowledge,you may take help of the internet search. 
-        You want the human to keep asking insightful questions, that can help them learn more about the subject. 
             
         You have access to the following tools: """
 
