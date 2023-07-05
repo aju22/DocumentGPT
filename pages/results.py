@@ -4,242 +4,24 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.colored_header import colored_header
 
 from youtube_search import YoutubeSearch
-
 import base64
-import json
 
-from dataclasses import dataclass
-from typing import Literal
-
-import openai
-
-from langchain.chat_models import ChatOpenAI
-from langchain.callbacks import get_openai_callback
-from langchain.chains import ConversationalRetrievalChain
-from langchain.callbacks.base import BaseCallbackHandler
-from langchain.chains.question_answering import load_qa_chain
-from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT, QA_PROMPT
-from langchain.chains.llm import LLMChain
-
-
-@dataclass
-class Message:
-    """Class for keeping track of a chat message."""
-    role: Literal["human", "ai"]
-    content: str
-
-
-class State:
-    def __init__(self):
-        pass
-
-    def initialize_all(self):
-        self.initialize_session_state()
-        self.load_tab_css()
-
-    def load_tab_css(self):
-        with open("static/tab.css", "r") as f:
-            css = f"<style>{f.read()}</style>"
-            st.markdown(css, unsafe_allow_html=True)
-
-    def initialize_session_state(self):
-        if "history" not in st.session_state:
-            st.session_state.history = []
-        if "memory" not in st.session_state:
-            st.session_state.memory = []
-        if "search_keywords" not in st.session_state:
-            st.session_state.search_keywords = []
-        if "sources" not in st.session_state:
-            st.session_state.sources = []
-        if "token_count" not in st.session_state:
-            st.session_state.token_count = 0
-        if "chat_placeholder" not in st.session_state:
-            st.session_state.chat_placeholder = None
-        if "chat_container" not in st.session_state:
-            st.session_state.chat_output = None
-        if "chat_text" not in st.session_state:
-            st.session_state.text = None
-
-
-class StreamHandler(BaseCallbackHandler):
-    def __init__(self):
-        self.text = ""
-
-    def on_llm_new_token(self, token: str, **kwargs) -> None:
-        self.text += token
-
-        with st.session_state.chat_container:
-            st.session_state.chat_text.write(self.text)
-
-    def reset(self):
-        self.text = ""
-
-
-class ConversationalBot:
-
-    def __init__(self, stream_handler: StreamHandler):
-        self.stream_handler = stream_handler
-        self.conversation = self.get_model_chain()
-
-    def get_model_chain(self):
-        chat_model = ChatOpenAI(
-            model_name="gpt-3.5-turbo",
-            temperature="0",
-            openai_api_key=st.session_state['openai_api_key'],
-            streaming=True,
-            callbacks=[self.stream_handler],
-            verbose=False
-        )
-
-        summary_model = ChatOpenAI(
-            model_name="gpt-3.5-turbo",
-            temperature="0",
-            openai_api_key=st.session_state['openai_api_key'],
-            verbose=False
-        )
-
-        question_generator = LLMChain(llm=summary_model, prompt=CONDENSE_QUESTION_PROMPT)
-        doc_chain = load_qa_chain(chat_model, chain_type="stuff", prompt=QA_PROMPT)
-
-        return ConversationalRetrievalChain(
-            retriever=st.session_state.vector_store.as_retriever(),
-            combine_docs_chain=doc_chain,
-            question_generator=question_generator,
-            return_source_documents=True,
-            # verbose=True
-        )
-
-    def run_chain(self):
-
-        self.stream_handler.reset()
-
-        with get_openai_callback() as cb:
-            st.session_state.token_count += cb.total_tokens
-
-            with st.session_state.chat_placeholder:
-                human = st.chat_message("user")
-                human.write(st.session_state.human_prompt)
-
-            with st.session_state.chat_placeholder:
-                st.session_state.chat_container = st.chat_message('assistant')
-                with st.session_state.chat_container:
-                    st.session_state.chat_text = st.empty()
-
-            return self.conversation(
-                {"question": st.session_state.human_prompt, "chat_history": st.session_state.memory}
-            )
-
-    def clear_conversation(self):
-
-        st.session_state.memory = []
-        st.session_state.history = []
-        st.session_state.search_keywords = []
-        st.session_state.sources = []
-
-    def store_conversation(self, llm_response):
-
-        st.session_state.memory.append((st.session_state.human_prompt, llm_response['answer']))
-        st.session_state.search_keywords += self.get_keywords()
-
-        st.session_state.history.append(
-            Message("human", st.session_state.human_prompt)
-        )
-        st.session_state.history.append(
-            Message("ai", llm_response["answer"])
-        )
-
-        st.session_state.human_prompt = ""
-
-        st.session_state.memory = st.session_state.memory[-3:]
-        st.session_state.search_keywords = st.session_state.search_keywords[-5:]
-
-    def store_sources(self, llm_response):
-
-        st.session_state.sources = []
-
-        for document in llm_response['source_documents']:
-            source_text = f"{document.page_content}\n\nPage Number: {document.metadata['page_number']}\nChunk: {document.metadata['chunk']}"
-            st.session_state.sources.append(source_text)
-
-    def get_keywords(self):
-
-        conversation = ""
-        keyword_list = []
-
-        for human_prompt, llm_response in st.session_state.memory:
-            conversation += "Human: " + human_prompt + "\n"
-            conversation += "AI: " + llm_response + "\n"
-
-        openai.api_key = st.session_state['openai_api_key']
-
-        search_keywords_extract_function = {
-            "name": "search_keywords_extractor",
-            "description": "Creates a list of 5 short academic Google searchable keywords from the given conversation.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "keywords": {
-                        "type": "string",
-                        "description": "List of 5 short academic Google searchable keywords"
-                    }
-                },
-                "required": ["keywords"]
-            }
-        }
-
-        res = openai.ChatCompletion.create(
-            model='gpt-3.5-turbo-0613',
-            messages=[{"role": "user", "content": conversation}],
-            functions=[search_keywords_extract_function]
-        )
-
-        if "function_call" in res['choices'][0]['message']:
-            args = json.loads(res['choices'][0]['message']['function_call']['arguments'])
-            keyword_list = list(args['keywords'].split(","))
-
-        return keyword_list
-
-    def run_callback(self):
-
-        llm_response = self.run_chain()
-        self.store_conversation(llm_response)
-        self.store_sources(llm_response)
-
-
-def run_html():
-    return components.html("""
-                            <script>
-                                const streamlitDoc = window.parent.document;
-                                const buttons = Array.from(
-                                    streamlitDoc.querySelectorAll('.stButton > button')
-                                );
-                                const submitButton = buttons.find(
-                                    el => el.innerText === 'Submit'
-                                );
-                                streamlitDoc.addEventListener('keydown', function(e) {
-                                    switch (e.key) {
-                                        case 'Enter':
-                                            submitButton.click();
-                                            break;
-                                    }
-                                });
-                            </script>
-                            """,
-                           height=0,
-                           width=0,
-                           )
-
+from Conversation.conversation import ConversationalAgent
+from utils import load_tab_css, initialize_session_state, run_html
 
 st.set_page_config(page_title="Display Results",
                    layout="wide",
                    initial_sidebar_state="collapsed")
 
-State().initialize_all()
-bot = ConversationalBot(StreamHandler())
+load_tab_css()
+initialize_session_state()
+agent = ConversationalAgent()
+
+######################################################################
 
 st.title("Have fun Researching! 📚")
 
-tab1, tabgap1, tab2, tagap2, tab3, tagap3, tab4 = st.tabs(["PDF", "   ", "Google", "   ", "Youtube", " ", "Chat"])
+tab1, gap1, tab2, gap2, tab3, gap3, tab4 = st.tabs(["PDF", "   ", "Google", "   ", "Youtube", " ", "Chat"])
 
 with tab1:
     st.subheader("PDF Display")
@@ -248,7 +30,8 @@ with tab1:
     with col2:
         pdf_bytes = st.session_state["pdf_bytes"]
         base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="900" height="800" type="application/pdf"></iframe>'
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="900" height="800" ' \
+                      f'type="application/pdf"></iframe> '
         st.markdown(pdf_display, unsafe_allow_html=True)
 
 with tab2:
@@ -270,6 +53,7 @@ with tab3:
     st.subheader("Youtube Results")
     cols = st.columns(5)
     buttons = []
+    results = []
     for i, keyword in enumerate(st.session_state.search_keywords):
         buttons.append(cols[i].button(keyword, use_container_width=True, key=i))
 
@@ -279,7 +63,8 @@ with tab3:
         if button:
             search_y = st.session_state.search_keywords[i]
 
-    results = YoutubeSearch(search_y, max_results=3).to_dict()
+    if search_y:
+        results = YoutubeSearch(search_y, max_results=3).to_dict()
 
     _, col2, _ = st.columns([1.8, 5, 1])
 
@@ -296,6 +81,8 @@ with tab3:
 
 with tab4:
     st.subheader("Chatbot")
+    st.text("Ask the chatbot anything! If the chatbot is unable to fetch the answer from the provided document,")
+    st.text("it will also perform an additional Web Search to gather more context. You can view the sources below.")
 
     st.session_state.chat_placeholder = st.container()
     prompt_placeholder = st.form("chat-form")
@@ -322,17 +109,44 @@ with tab4:
         cols[1].form_submit_button(
             "Submit",
             type="primary",
-            on_click=bot.run_callback,
+            on_click=agent.run_callback,
         )
 
     st.button("Clear Chat",
-              on_click=bot.clear_conversation,
+              on_click=agent.clear_conversation,
               )
 
-    with st.expander("View Sources"):
-        for source in st.session_state.sources:
-            st.divider()
-            st.write(source)
+    with st.expander("View Web Sources"):
+
+        if len(st.session_state.google_sources) != 0:
+            colored_header(label="Google Searches", description="Related Web Search Results",
+                           color_name="light-blue-70")
+
+            for source_dict in st.session_state.google_sources:
+                st.divider()
+                source_text = f"Title: {source_dict['title']}\n\nLink: {source_dict['link']}\n\nSnippet: {source_dict['snippet']}\n\n"
+                st.write(source_text)
+                answer = f"\n\nScraped Results: {source_dict['answer']}"
+                st.write(answer)
+
+        else:
+            colored_header(label="Google Searches", description="Related Web Search Results",
+                           color_name="light-blue-70")
+            st.write("No google sources found")
+
+    with st.expander("View Document Sources"):
+
+        if len(st.session_state.doc_sources) != 0:
+            colored_header(label="Source Documents", description="Related Document Chunks", color_name="orange-70")
+            for document in st.session_state.doc_sources:
+                st.divider()
+                source_text = f"{document.page_content}\n\nPage Number: {document.metadata['page_number']}\nChunk: {document.metadata['chunk']}"
+                st.write(source_text)
+
+        else:
+            colored_header(label="Source Documents", description="Related Document Chunk Results",
+                           color_name="orange-70")
+            st.write("No document sources found")
 
     run_html()
 
