@@ -38,8 +38,8 @@ DocumentGPT is a web application that allows you to chat over your research docu
 Here are some areas for further improvement in DocumentGPT:
 
 - ✅ **Token Streaming**: Implement token streaming to handle long conversations more efficiently.
-- **Add Document Citations**: Add interface for showing document citations by including more metadata.
-- **Agents**: Enable several plugins like google search and other features within the chatbot.
+- ✅**Add Document Citations**: Add interface for showing document citations by including more metadata.
+- ✅**Agents**: Enable several plugins like google search and other features within the chatbot.
 - ✅ **Improved User Interface**: Enhance the user interface.
 
 ## Demo
