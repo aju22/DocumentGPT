@@ -112,15 +112,25 @@ with tab4:
             on_click=agent.run_callback,
         )
 
-    st.button("Clear Chat",
-              on_click=agent.clear_conversation,
-              )
+    buttons_placeholder = st.container()
+
+    with buttons_placeholder:
+        cols = st.columns([0.15, 1])
+
+        cols[0].button("Regenerate Response",
+                       key="regenerate",
+                       on_click=agent.regenerate_response)
+
+        cols[-1].button("Clear Chat",
+                        key="clear",
+                        on_click=agent.clear_conversation)
 
     with st.expander("View Web Sources"):
 
+        colored_header(label="Google Searches", description="Related Web Search Results",
+                       color_name="light-blue-70")
+
         if len(st.session_state.google_sources) != 0:
-            colored_header(label="Google Searches", description="Related Web Search Results",
-                           color_name="light-blue-70")
 
             for source_dict in st.session_state.google_sources:
                 st.divider()
@@ -130,22 +140,22 @@ with tab4:
                 st.write(answer)
 
         else:
-            colored_header(label="Google Searches", description="Related Web Search Results",
-                           color_name="light-blue-70")
+
             st.write("No google sources found")
 
     with st.expander("View Document Sources"):
 
+        colored_header(label="Source Documents", description="Related Document Chunks", color_name="orange-70")
+
         if len(st.session_state.doc_sources) != 0:
-            colored_header(label="Source Documents", description="Related Document Chunks", color_name="orange-70")
+
             for document in st.session_state.doc_sources:
                 st.divider()
                 source_text = f"{document.page_content}\n\nPage Number: {document.metadata['page_number']}\nChunk: {document.metadata['chunk']}"
                 st.write(source_text)
 
         else:
-            colored_header(label="Source Documents", description="Related Document Chunk Results",
-                           color_name="orange-70")
+
             st.write("No document sources found")
 
     run_html()
