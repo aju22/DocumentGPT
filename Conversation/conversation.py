@@ -92,7 +92,7 @@ class ConversationalAgent:
             ),
         ]
 
-        prefix = """Have an conversation with a human over an academic topic from a database of documents, 
+        prefix = """Have a conversation with a human over an academic topic from a database of documents, 
         answering the following questions as best, academically and elaborately as you can. 
         Your goal is to provide as much detail as you can possibly gather 
         from the database of documents by thoroughly going through it.
@@ -101,6 +101,7 @@ class ConversationalAgent:
         observations and answers you found, exactly as it is. 
         Only when you cannot gather enough information from the 
         document, to gather in-depth knowledge,you may take help of the internet search. 
+        You want the human to keep asking insightful questions, that can help them learn more about the subject. 
             
         You have access to the following tools: """
 
@@ -137,18 +138,15 @@ class ConversationalAgent:
             st.session_state.token_count += cb.total_tokens
 
             with st.session_state.chat_placeholder:
-                with st.chat_message("user"):
-                    st.write(st.session_state.human_prompt)
-
-            with st.session_state.chat_placeholder:
+                st.chat_message("user").write(st.session_state.human_prompt)
                 with st.chat_message('assistant'):
                     try:
                         st_callback = StreamlitCallbackHandler(st.container())
                         llm_response = self.agent(st.session_state.human_prompt, callbacks=[st_callback])
                     except OutputParserException as e:
-                        st.error(e)
-                        st.write("Please try again.")
-                        llm_response = None
+                        response = str(e)
+                        response = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
+                        llm_response = {"output": response, "chat_history": ""}
 
             return llm_response
 
