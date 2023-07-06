@@ -147,8 +147,16 @@ class ConversationalAgent:
                         response = str(e)
                         response = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
                         llm_response = {"output": response, "chat_history": ""}
+                        st.error(e)
 
             return llm_response
+
+    def regenerate_response(self):
+
+        st.session_state.human_prompt = st.session_state.history[-2].content
+        st.session_state.history = st.session_state.history[:-2]
+        self.run_callback()
+        return
 
     def clear_conversation(self):
 
@@ -215,3 +223,4 @@ class ConversationalAgent:
         if llm_response is None:
             return
         self.store_conversation(llm_response)
+        return
