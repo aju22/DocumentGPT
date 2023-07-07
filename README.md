@@ -41,6 +41,8 @@ Here are some areas for further improvement in DocumentGPT:
 - ✅**Add Document Citations**: Add interface for showing document citations by including more metadata.
 - ✅**Agents**: Enable several plugins like google search and other features within the chatbot.
 - ✅ **Improved User Interface**: Enhance the user interface.
+- **AI Alignment**: Improve the model behaviour by various techniques in prompt engineering.
+- **Parse Errors**: Fix handling output parse errors.
 
 ## Demo
 
