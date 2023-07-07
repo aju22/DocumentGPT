@@ -15,7 +15,7 @@ from langchain.memory import ConversationBufferWindowMemory
 from langchain.callbacks import StreamlitCallbackHandler
 from langchain.schema.output_parser import OutputParserException
 
-from CustomTools.tools import LookupTool, WebSearchTool, SummarizationTool
+from CustomTools.tools import LookupTool, WebSearchTool, SummarizationTool, ArxivTool
 
 
 @dataclass
@@ -43,6 +43,61 @@ class ConversationalAgent:
 
     def __init__(self):
         self.agent = self.get_agent_chain()
+        self.tools = self.load_tools()
+
+    def load_tools(self):
+
+        llm = ChatOpenAI(
+            model_name="gpt-3.5-turbo",
+            temperature="0",
+            openai_api_key=st.session_state['openai_api_key'],
+            streaming=False,
+            verbose=False
+        )
+
+        lookup_tool = LookupTool(llm, st.session_state['vector_store'])
+        search_tool = WebSearchTool()
+        summarize_tool = SummarizationTool(llm, st.session_state['document_chunks'])
+        arxiv_tool = ArxivTool(llm)
+
+        tools = [
+            Tool(
+                name="Lookup from local database",
+                func=lookup_tool.run,
+                description="Always useful for finding the exactly written answer to the question by looking "
+                            "into a collection of academic documents. Input should be a query, not referencing "
+                            "any obscure pronouns from the conversation before that will pull out relevant information "
+                            "from the database."
+            ),
+
+            Tool(
+                name="Search Internet from Arxiv",
+                func=arxiv_tool.run,
+                description="A wrapper around arxiv.org an Online Research Paper Database. Useful for when you need "
+                            "to answer questions about Physics, Mathematics, Computer Science, Quantitative Biology, "
+                            "Quantitative Finance, Statistics, Electrical Engineering, and Economics from scientific "
+                            "articles on arxiv.org before you perform a regular search on the internet. Input should "
+                            "be a search query and not referencing any obscure pronouns from the conversation. "
+            ),
+
+            Tool(
+                name="Search Internet",
+                func=search_tool.run,
+                description="Useful when you cannot find a clear answer by looking up the database or from the online "
+                            "research paper database so that you need to search the regular internet for general"
+                            " web articles for further context and understanding to give an elaborate,exact and "
+                            "clear answer. Input should be a fully formed question based on the context of what"
+                            "you couldn't find and not referencing any obscure pronouns from the conversation before."
+            ),
+            Tool(
+                name="Summarize Database",
+                func=summarize_tool.run,
+                description="Only use when the human asks to summarize the entire document. Do not use for any other "
+                            "tasks other than the human suggesting you to do so "
+            ),
+        ]
+
+        return tools
 
     def get_agent_chain(self):
 
@@ -54,56 +109,20 @@ class ConversationalAgent:
             verbose=False
         )
 
-        llm = ChatOpenAI(
-            model_name="gpt-3.5-turbo",
-            temperature="0",
-            openai_api_key=st.session_state['openai_api_key'],
-            streaming=False,
-            verbose=False
-        )
-
-        lookup_tool = LookupTool(chat_model, st.session_state['vector_store'])
-        search_tool = WebSearchTool()
-        summarize_tool = SummarizationTool(llm, st.session_state['document_chunks'])
-
-        tools = [
-            Tool(
-                name="Lookup from database",
-                func=lookup_tool.run,
-                description="Always useful for finding the exactly written answer to the question by looking into a collection of academic"
-                            "documents. Input should be a query, not referencing any obscure pronouns "
-                            "from the conversation before that will pull out relevant information from the database."
-            ),
-
-            Tool(
-                name="Search Internet",
-                func=search_tool.run,
-                description="Unless you cannot find a clear answer by looking up the database you need to "
-                            "search the internet for further context and understanding to give a elaborate, "
-                            "exact and clear answer. Input should be a fully formed question based on the context of "
-                            "what you couldn't find and not referencing any obscure pronouns from the conversation "
-                            "before. "
-            ),
-            Tool(
-                name="Summarize Database",
-                func=summarize_tool.run,
-                description="Only use when the human asks to summarize the entire document. Do not use for any other "
-                            "tasks other than the human suggesting you to do so "
-            ),
-        ]
-
-        prefix = """Have a conversation with a human over an academic topic from a database of documents, 
-        answering the following questions as best, academically and elaborately as you can. 
-        Your goal is to provide as much detail as you can possibly gather 
-        from the database of documents by thoroughly going through it.
-        If you get a proper exact answer from the 
-        document, do not try to summarise what you have observed and understood, give your final answer as the 
-        observations and answers you found, exactly as it is. 
-        Only when you cannot gather enough information from the 
-        document, to gather in-depth knowledge,you may take help of the internet search. 
-        You want the human to keep asking insightful questions, that can help them learn more about the subject. 
+        prefix = """You are a Professional Teacher.
+            Have a conversation with a human, who is your student, over an academic topic from a database of documents,
+            answering the questions as best, academically and elaborately as you can.
+            Your goal is to provide as much detail as you can possibly gather
+            from the database of documents by thoroughly going through it.
+            If you get a proper exact answer from the document, do not try to summarise your observations and thoughts
+            ,give your final answer as the whole of observations and thoughts you found, exactly as it is.
+            Be professional and explain everything you found.
+            If you cannot find a clear answer from the database of documents, check for Online research paper database 
+            to see if you can get relevant research papers. 
+            Only when you cannot gather enough information from both these methods,to gather in-depth knowledge,
+            ,you may take help of the regular internet search to get results from general web articles.
             
-        You have access to the following tools: """
+            You have access to the following tools: """
 
         suffix = """Begin!"
 
@@ -112,7 +131,7 @@ class ConversationalAgent:
         {agent_scratchpad}"""
 
         prompt = ZeroShotAgent.create_prompt(
-            tools,
+            self.tools,
             prefix=prefix,
             suffix=suffix,
             input_variables=["input", "chat_history", "agent_scratchpad"],
@@ -121,10 +140,10 @@ class ConversationalAgent:
 
         llm_chain = LLMChain(llm=chat_model, prompt=prompt)
 
-        agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True,
+        agent = ZeroShotAgent(llm_chain=llm_chain, tools=self.tools, verbose=True,
                               handle_parsing_errors=True)
         agent_chain = AgentExecutor.from_agent_and_tools(
-            agent=agent, tools=tools, verbose=True, memory=memory
+            agent=agent, tools=self.tools, verbose=True, memory=memory
         )
 
         return agent_chain
