@@ -127,21 +127,23 @@ with tab4:
 
     with st.expander("View Web Sources"):
 
-        colored_header(label="Google Searches", description="Related Web Search Results",
+        colored_header(label="Web Searches", description="Related Web Search Results",
                        color_name="light-blue-70")
 
         if len(st.session_state.google_sources) != 0:
 
-            for source_dict in st.session_state.google_sources:
+            for source in st.session_state.google_sources:
+                if isinstance(source, dict):
+                    source_text = f"Title: {source['title']}\n\nLink: {source['link']}\n\nSnippet: {source['snippet']}\n\nScraped Results: {source['answer']} "
+                else:
+                    source_text = source
+
                 st.divider()
-                source_text = f"Title: {source_dict['title']}\n\nLink: {source_dict['link']}\n\nSnippet: {source_dict['snippet']}\n\n"
                 st.write(source_text)
-                answer = f"\n\nScraped Results: {source_dict['answer']}"
-                st.write(answer)
 
         else:
 
-            st.write("No google sources found")
+            st.write("No Web sources found")
 
     with st.expander("View Document Sources"):
 
