@@ -42,8 +42,8 @@ class ConversationalAgent:
     """
 
     def __init__(self):
-        self.agent = self.get_agent_chain()
         self.tools = self.load_tools()
+        self.agent = self.get_agent_chain()
 
     def load_tools(self):
 
