@@ -33,16 +33,24 @@ DocumentGPT is a web application that allows you to chat over your research docu
 4. Run the application: `streamlit run main.py`
 5. Access the web app in your browser at `http://localhost:8501`.
 
+ ## Presently Available Tools
+
+- ✅**Vector Database Retreival Tool**: Finds answers from vector database.
+
+- ✅**Arxiv Tool**: Searches scientific articles on arxiv.org for specific topics.
+
+- ✅**Search Tool**: Searches the internet for general web articles.
+
+- ✅**Summarization Tool**: Summarizes entire document when requested.
+
 ## Further Improvements
 
 Here are some areas for further improvement in DocumentGPT:
 
-- ✅ **Token Streaming**: Implement token streaming to handle long conversations more efficiently.
-- ✅**Add Document Citations**: Add interface for showing document citations by including more metadata.
-- ✅**Agents**: Enable several plugins like google search and other features within the chatbot.
-- ✅ **Improved User Interface**: Enhance the user interface.
 - **AI Alignment**: Improve the model behaviour by various techniques in prompt engineering.
+- **Tools**: Addition of more helpul tools for better model responses.
 - **Parse Errors**: Fix handling output parse errors.
+
 
 ## Demo
 
