@@ -11,3 +11,4 @@ pydantic~=1.10.9
 google-search-results~=2.4.2
 jusText~=3.0.0
 requests~=2.31.0
+arxiv~=1.4.7
