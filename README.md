@@ -11,19 +11,9 @@ DocumentGPT is a web application that allows you to chat over your research docu
 - Get semantic search results from your research document using vector databases.
 - Easy-to-use interface with multiple pages for a smooth user experience.
 
-## Screenshots
+## Demo Preview
   
-- **Display PDF**: ![](imgs/pdf.jpg)
-  
-- **ChatBot**: ![](imgs/chat.png)
-
-- **ChatBot performing WebSearch**: ![](imgs/search.png)
-  
-- **Show Google Results**: ![](imgs/google.jpg)
-  
-- **Show Youtube Results**: ![](imgs/youtube.jpg)
-
-- **View All Sources**: ![](imgs/sources.png)
+https://github.com/aju22/DocumentGPT/assets/72931799/d8b7d386-d379-4439-a260-9db5f8d3da2b
 
 ## How to Use
 
@@ -52,16 +42,13 @@ Here are some areas for further improvement in DocumentGPT:
 - **Parse Errors**: Fix handling output parse errors.
 
 
-## Demo
+## Streamlit Cloud
 
 You can try out the chatbot by visiting the deployed app on Streamlit Cloud:
 [Deployed App](https://documentgpt.streamlit.app/)
 
 *Note: Unfortunately PDF Display works fine locally, but in the deployed app only works on certain browsers like Safari, Firefox :(*
 
-[](https://clipchamp.com/watch/JnAE9XfLhbC)
-
-<video src="https://clipchamp.com/watch/JnAE9XfLhbC"></video>
 
 ## Contributing
 
