@@ -161,5 +161,6 @@ with tab4:
     run_html()
 
     credit_card_placeholder.caption(f"""
-    Used {st.session_state.token_count} tokens
+    Used {st.session_state.token_count} tokens\n
+    Cost {(st.session_state.token_count / 1000) * 0.002} $ (approx.)
     """)
