@@ -6,10 +6,10 @@ DocumentGPT is a web application that allows you to chat over your research docu
 
 - Upload your PDF document and view its contents within the web app.
 - Chat with an AI chatbot powered by OpenAI's chat API, using the content of your research document.
-- Perform Google search directly from the chat interface to quickly find relevant information.
-- Search for YouTube videos related to your research topic and watch them within the app.
-- Get semantic search results from your research document using vector databases.
-- Easy-to-use interface with multiple pages for a smooth user experience.
+- Get semantic search answers from your document using vector databases.
+- Get web results over topics for more context and information rich answers.
+- Perform Google/YouTube search within the app and get auto identified search suggestions.
+- Verify sources for all generated results.
 
 ## Demo Preview
   
