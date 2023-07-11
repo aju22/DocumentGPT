@@ -1,5 +1,6 @@
 import streamlit as st
 import streamlit.components.v1 as components
+from Conversation.conversation import ConversationalAgent
 
 
 def load_tab_css():
@@ -21,10 +22,8 @@ def initialize_session_state():
         st.session_state.token_count = 0
     if "chat_placeholder" not in st.session_state:
         st.session_state.chat_placeholder = None
-    if "chat_output" not in st.session_state:
-        st.session_state.chat_output = None
-    if "chat_text" not in st.session_state:
-        st.session_state.text = None
+    if "agent" not in st.session_state:
+        st.session_state.agent = ConversationalAgent()
 
 
 def run_html():
