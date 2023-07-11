@@ -59,6 +59,10 @@ You can try out the chatbot by visiting the deployed app on Streamlit Cloud:
 
 *Note: Unfortunately PDF Display works fine locally, but in the deployed app only works on certain browsers like Safari, Firefox :(*
 
+[](https://clipchamp.com/watch/JnAE9XfLhbC)
+
+<video src="https://clipchamp.com/watch/JnAE9XfLhbC"></video>
+
 ## Contributing
 
 Contributions to DocumentGPT are welcome! If you have any feedback, suggestions, or bug reports, please create an issue in the GitHub repository. You can also contribute to the project by submitting pull requests with your enhancements.
