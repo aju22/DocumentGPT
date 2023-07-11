@@ -6,8 +6,7 @@ import openai
 import streamlit as st
 
 from langchain import LLMChain
-from langchain.agents import Tool
-from langchain.agents import ZeroShotAgent, AgentExecutor
+from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
 from langchain.callbacks import get_openai_callback
 
 from langchain.chat_models import ChatOpenAI
@@ -43,10 +42,9 @@ class ConversationalAgent:
 
     def __init__(self):
         self.tools = self.load_tools()
-        self.agent = self.get_agent_chain()
+        self.agent = self.get_agent()
 
     def load_tools(self):
-
         llm = ChatOpenAI(
             model_name="gpt-3.5-turbo",
             temperature="0",
@@ -99,8 +97,7 @@ class ConversationalAgent:
 
         return tools
 
-    def get_agent_chain(self):
-
+    def get_agent(self):
         chat_model = ChatOpenAI(
             model_name="gpt-3.5-turbo",
             temperature="0",
@@ -109,20 +106,24 @@ class ConversationalAgent:
             verbose=False
         )
 
-        prefix = """You are a Professional Teacher.
-            Have a conversation with a human, who is your student, over an academic topic from a database of documents,
-            answering the questions as best, academically and elaborately as you can.
-            Your goal is to provide as much detail as you can possibly gather
-            from the database of documents by thoroughly going through it.
-            If you get a proper exact answer from the document, do not try to summarise your observations and thoughts
-            ,give your final answer as the whole of observations and thoughts you found, exactly as it is.
-            Be professional and explain everything you found.
-            If you cannot find a clear answer from the database of documents, check for Online research paper database 
-            to see if you can get relevant research papers. 
-            Only when you cannot gather enough information from both these methods,to gather in-depth knowledge,
-            ,you may take help of the regular internet search to get results from general web articles.
-            
-            You have access to the following tools: """
+        prefix = """You are a Proffessional Teacher Chatbot. Have a conversation with a human, who is your student, over an academic topic from the database of documents,
+                    you are provided with for answering the questions as best, academically and elaborately as you can.
+                    If you cannot find a clear answer from the database of documents, check for Online research paper database to see if you can get relevant research papers.
+                    Only when you cannot gather enough information from both these methods
+                    ,to gather in-depth knowledge,you may take help of the regular internet search to get results from general web articles.
+
+                    You have access to the following tools: """
+
+        FORMAT_INSTRUCTIONS = """Use the following format:
+
+        Question: the input question you must answer
+        Thought: you should always think about what to do
+        Action: the action to take, should be one of [{tool_names}]
+        Action Input: the input to the action
+        Observation: the result of the action
+        ... (this Thought/Action/Action Input/Observation can repeat N times)
+        Thought: I now know the final answer based on my observation.
+        Final Answer: the final answer to the original input question is the exact complete detailed explanation from the Observation"""
 
         suffix = """Begin!"
 
@@ -134,57 +135,62 @@ class ConversationalAgent:
             self.tools,
             prefix=prefix,
             suffix=suffix,
+            format_instructions=FORMAT_INSTRUCTIONS,
             input_variables=["input", "chat_history", "agent_scratchpad"],
         )
+
+        def _handle_error(error) -> str:
+            INSTRUCTIONS = """Use the following format:
+
+            Observation: the result of the action
+            Thought: I now know the final answer based on my observation
+            Final Answer: the final answer to the original input question is the detailed explanation from the Observation"""
+
+            output = str(error).removeprefix("Could not parse LLM output: `").removesuffix("`")
+
+            response = f"Thought: {output}\nThe above completion did not satisfy the Format Instructions given in the Prompt.\nFormat Instructions: {INSTRUCTIONS}\nPlease try again and conform to the format."
+            # print("error msg: ", response)
+            return response
+
         memory = ConversationBufferWindowMemory(k=3, memory_key="chat_history")
 
         llm_chain = LLMChain(llm=chat_model, prompt=prompt)
 
-        agent = ZeroShotAgent(llm_chain=llm_chain, tools=self.tools, verbose=True,
-                              handle_parsing_errors=True)
+        agent = ZeroShotAgent(llm_chain=llm_chain, tools=self.tools, verbose=True, handle_parsing_errors=_handle_error)
+        
         agent_chain = AgentExecutor.from_agent_and_tools(
-            agent=agent, tools=self.tools, verbose=True, memory=memory
+            agent=agent, tools=self.tools, verbose=True, memory=memory, handle_parsing_errors=_handle_error
         )
 
         return agent_chain
 
     def run_chain(self):
-
-        st.session_state.doc_sources = []
-        st.session_state.google_sources = []
-
         with get_openai_callback() as cb:
+            st.session_state.doc_sources = []
+            st.session_state.google_sources = []
+
             st.session_state.token_count += cb.total_tokens
 
             with st.session_state.chat_placeholder:
                 st.chat_message("user").write(st.session_state.human_prompt)
                 with st.chat_message('assistant'):
-                    try:
-                        st_callback = StreamlitCallbackHandler(st.container())
-                        llm_response = self.agent(st.session_state.human_prompt, callbacks=[st_callback])
-                    except OutputParserException as e:
-                        response = str(e)
-                        response = response.removeprefix("Could not parse LLM output: `").removesuffix("`")
-                        llm_response = {"output": response, "chat_history": ""}
-                        st.error(e)
-
-            return llm_response
+                    st_callback = StreamlitCallbackHandler(st.container())
+                    llm_response = self.agent(inputs=st.session_state.human_prompt, callbacks=[st_callback])
+                    return llm_response
 
     def regenerate_response(self):
-
         st.session_state.human_prompt = st.session_state.history[-2].content
         st.session_state.history = st.session_state.history[:-2]
         self.run_callback()
         return
 
     def clear_conversation(self):
-
         st.session_state.history = []
         st.session_state.search_keywords = []
         st.session_state.sources = []
         st.session_state.doc_sources = []
         st.session_state.google_sources = []
-        self.agent = self.get_agent_chain()
+        self.agent = self.get_agent()
 
     def store_conversation(self, llm_response):
 
@@ -203,7 +209,6 @@ class ConversationalAgent:
 
     @staticmethod
     def get_keywords(llm_response):
-
         conversation = llm_response["chat_history"]
         keyword_list = []
 
@@ -237,9 +242,8 @@ class ConversationalAgent:
         return keyword_list
 
     def run_callback(self):
-
         llm_response = self.run_chain()
-        if llm_response is None:
-            return
+        # if llm_response is None:
+        #     return
         self.store_conversation(llm_response)
         return
