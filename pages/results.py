@@ -162,5 +162,5 @@ with tab4:
 
     credit_card_placeholder.caption(f"""
     Used {st.session_state.token_count} tokens\n
-    Cost {(st.session_state.token_count / 1000) * 0.002} $ (approx.)
+    Cost {round((st.session_state.token_count / 1000) * 0.002, 6)} $ (approx.)
     """)
