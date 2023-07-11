@@ -39,8 +39,6 @@ Here are some areas for further improvement in DocumentGPT:
 
 - **AI Alignment**: Improve the model behaviour by various techniques in prompt engineering.
 - **Tools**: Addition of more helpul tools for better model responses.
-- **Parse Errors**: Fix handling output parse errors.
-
 
 ## Streamlit Cloud
 
