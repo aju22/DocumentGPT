@@ -6,7 +6,6 @@ from streamlit_extras.colored_header import colored_header
 from youtube_search import YoutubeSearch
 import base64
 
-from Conversation.conversation import ConversationalAgent
 from utils import load_tab_css, initialize_session_state, run_html
 
 st.set_page_config(page_title="Display Results",
@@ -15,7 +14,6 @@ st.set_page_config(page_title="Display Results",
 
 load_tab_css()
 initialize_session_state()
-agent = ConversationalAgent()
 
 ######################################################################
 
@@ -109,7 +107,7 @@ with tab4:
         cols[1].form_submit_button(
             "Submit",
             type="primary",
-            on_click=agent.run_callback,
+            on_click=st.session_state.agent.run_callback,
         )
 
     buttons_placeholder = st.container()
@@ -119,11 +117,11 @@ with tab4:
 
         cols[0].button("Regenerate Response",
                        key="regenerate",
-                       on_click=agent.regenerate_response)
+                       on_click=st.session_state.agent.regenerate_response)
 
         cols[-1].button("Clear Chat",
                         key="clear",
-                        on_click=agent.clear_conversation)
+                        on_click=st.session_state.agent.clear_conversation)
 
     with st.expander("View Web Sources"):
 
