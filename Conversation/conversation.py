@@ -6,7 +6,7 @@ import openai
 import streamlit as st
 
 from langchain import LLMChain
-from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
+from langchain.agents import ZeroShotAgent, Tool, initialize_agent, AgentExecutor
 from langchain.callbacks import get_openai_callback
 
 from langchain.chat_models import ChatOpenAI
@@ -157,7 +157,6 @@ class ConversationalAgent:
         llm_chain = LLMChain(llm=chat_model, prompt=prompt)
 
         agent = ZeroShotAgent(llm_chain=llm_chain, tools=self.tools, verbose=True, handle_parsing_errors=_handle_error)
-        
         agent_chain = AgentExecutor.from_agent_and_tools(
             agent=agent, tools=self.tools, verbose=True, memory=memory, handle_parsing_errors=_handle_error
         )
@@ -165,18 +164,17 @@ class ConversationalAgent:
         return agent_chain
 
     def run_chain(self):
-        with get_openai_callback() as cb:
-            st.session_state.doc_sources = []
-            st.session_state.google_sources = []
+        st.session_state.doc_sources = []
+        st.session_state.google_sources = []
 
-            st.session_state.token_count += cb.total_tokens
-
-            with st.session_state.chat_placeholder:
-                st.chat_message("user").write(st.session_state.human_prompt)
-                with st.chat_message('assistant'):
-                    st_callback = StreamlitCallbackHandler(st.container())
+        with st.session_state.chat_placeholder:
+            st.chat_message("user").write(st.session_state.human_prompt)
+            with st.chat_message('assistant'):
+                st_callback = StreamlitCallbackHandler(st.container())
+                with get_openai_callback() as cb:
                     llm_response = self.agent(inputs=st.session_state.human_prompt, callbacks=[st_callback])
-                    return llm_response
+                    st.session_state.token_count += cb.total_tokens
+                return llm_response
 
     def regenerate_response(self):
         st.session_state.human_prompt = st.session_state.history[-2].content
@@ -193,7 +191,6 @@ class ConversationalAgent:
         self.agent = self.get_agent()
 
     def store_conversation(self, llm_response):
-
         st.session_state.search_keywords += self.get_keywords(llm_response)
 
         st.session_state.history.append(
