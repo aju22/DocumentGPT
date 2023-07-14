@@ -1,2 +1,6 @@
 [server]
 enableStaticServing = true
+enableCORS=false
+
+[browser]
+gatherUsageStats = false
