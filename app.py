@@ -1,13 +1,43 @@
+import base64
+import io
+
+import fitz
+from PIL import Image
+
 import streamlit as st
 from streamlit_extras.switch_page_button import switch_page
 
 from FileReader.pdfFile import PDFDBStore
 
 
-def save_bytes(uploaded_file):
-    st.session_state.pdf_bytes = uploaded_file.getvalue()
+@st.cache_resource
+def save_pdf_image(uploaded_file):
+    pdf_bytes = uploaded_file.getvalue()
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    images = []
+    for i, page in enumerate(doc):  # iterate through the pages
+        zoom_x = 2  # horizontal zoom
+        zoom_y = 2  # vertical zoom
+        mat = fitz.Matrix(zoom_x, zoom_y)  # zoom factor 2 in each dimension
+        pix = page.get_pixmap(matrix=mat)  # use 'mat' instead of the identity matrix
+        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+        images.append(img)
+
+    # Combine images vertically
+    long_image = Image.new("RGB", (images[0].width, sum(img.height for img in images)))
+    y_offset = 0
+    for img in images:
+        long_image.paste(img, (0, y_offset))
+        y_offset += img.height
+
+    buffered = io.BytesIO()
+    long_image.save(buffered, format="PNG")
+    image_bytes = base64.b64encode(buffered.getvalue()).decode()
+
+    st.session_state.pdf_image = image_bytes
 
 
+@st.cache_resource
 def save_vector_store(_db):
     st.session_state.vector_store, st.session_state.document_chunks = _db.get_vectorDB(return_docs=True)
 
@@ -80,7 +110,6 @@ uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
 if uploaded_file is not None:
 
     pdfDB = PDFDBStore(uploaded_file)
-    save_bytes(uploaded_file)
 
     if st.session_state.openai_api_key is None:
         st.error("Please enter your OpenAI API key in the sidebar to continue.")
@@ -93,7 +122,7 @@ if uploaded_file is not None:
 
         with st.spinner("Processing PDF File...This may take a while⏳"):
             save_vector_store(pdfDB)
+            save_pdf_image(uploaded_file)
 
         st.success("PDF uploaded successfully!")
-        save_vector_store(pdfDB)
         switch_page("results")
