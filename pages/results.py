@@ -6,6 +6,7 @@ from streamlit_extras.colored_header import colored_header
 from youtube_search import YoutubeSearch
 
 import utils
+import base64
 
 st.set_page_config(page_title="Display Results",
                    layout="wide",
