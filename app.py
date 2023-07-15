@@ -34,12 +34,12 @@ def save_pdf_image(uploaded_file):
     long_image.save(buffered, format="PNG")
     image_bytes = base64.b64encode(buffered.getvalue()).decode()
 
-    st.session_state.pdf_image = image_bytes
+    return image_bytes
 
 
 @st.cache_resource
 def save_vector_store(_db):
-    st.session_state.vector_store, st.session_state.document_chunks = _db.get_vectorDB(return_docs=True)
+    return _db.get_vectorDB(return_docs=True)
 
 
 def initialize_session_state():
@@ -51,6 +51,9 @@ def initialize_session_state():
 
     if "document_chunks" not in st.session_state:
         st.session_state.document_chunks = None
+
+    if "pdf_image" not in st.session_state:
+        st.session_state.pdf_image = None
 
 
 def set_openai_api_key(api_key):
@@ -118,10 +121,10 @@ if uploaded_file is not None:
         st.success("OpenAI API key set successfully!")
 
         with st.spinner("Processing PDF File...This may take a while⏳"):
-            save_vector_store(pdfDB)
-            save_pdf_image(uploaded_file)
+            st.session_state.vector_store, st.session_state.document_chunks = save_vector_store(pdfDB)
+            st.session_state.pdf_image = save_pdf_image(uploaded_file)
 
         st.success("PDF uploaded successfully!")
-        save_vector_store(pdfDB)
-        save_pdf_image(uploaded_file)
+        st.session_state.vector_store, st.session_state.document_chunks = save_vector_store(pdfDB)
+        st.session_state.pdf_image = save_pdf_image(uploaded_file)
         switch_page("results")
