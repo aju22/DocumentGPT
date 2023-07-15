@@ -10,7 +10,6 @@ from streamlit_extras.switch_page_button import switch_page
 from FileReader.pdfFile import PDFDBStore
 
 
-@st.cache_resource
 def save_pdf_image(uploaded_file):
     pdf_bytes = uploaded_file.getvalue()
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
