@@ -4,16 +4,15 @@ from streamlit_extras.add_vertical_space import add_vertical_space
 from streamlit_extras.colored_header import colored_header
 
 from youtube_search import YoutubeSearch
-import base64
 
-from utils import load_tab_css, initialize_session_state, run_html
+import utils
 
 st.set_page_config(page_title="Display Results",
                    layout="wide",
                    initial_sidebar_state="collapsed")
 
-load_tab_css()
-initialize_session_state()
+utils.load_tab_css()
+utils.initialize_session_state()
 
 ######################################################################
 
@@ -23,14 +22,17 @@ tab1, gap1, tab2, gap2, tab3, gap3, tab4 = st.tabs(["PDF", "   ", "Google", "   
 
 with tab1:
     st.subheader("PDF Display")
-    col1, col2, col3 = st.columns([1.8, 7, 1])
+    col1, col2, col3 = st.columns([0.5, 9, 0.5])
 
     with col2:
-        pdf_bytes = st.session_state["pdf_bytes"]
-        base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="900" height="800" ' \
-                       f'type="application/pdf"></iframe> '
-        st.markdown(pdf_display, unsafe_allow_html=True)
+        container_height = 700
+        image_bytes = st.session_state.pdf_image
+        img_html = f'<img src="data:image/png;base64,{image_bytes}"/>'
+        st.markdown(
+            f'<div style="height: {container_height}px; overflow-y: scroll; overflow-x: hidden; text-align: center; '
+            f'border: 5px solid #888888; border-radius: 4px;">{img_html}</div>',
+            unsafe_allow_html=True,
+        )
 
 with tab2:
     st.subheader("Google Results")
@@ -158,7 +160,7 @@ with tab4:
 
             st.write("No document sources found")
 
-    run_html()
+    utils.enterKeypress_submit_button_html()
 
     credit_card_placeholder.caption(f"""
     Used {st.session_state.token_count} tokens\n
