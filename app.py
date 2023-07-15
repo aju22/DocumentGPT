@@ -13,6 +13,7 @@ from FileReader.pdfFile import PDFDBStore
 @st.cache_resource
 def save_pdf_image(uploaded_file):
     pdf_bytes = uploaded_file.getvalue()
+    st.session_state.pdf_bytes = pdf_bytes
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
     images = []
     for i, page in enumerate(doc):  # iterate through the pages
@@ -55,6 +56,8 @@ def initialize_session_state():
     if "pdf_image" not in st.session_state:
         st.session_state.pdf_image = None
 
+    if "pdf_bytes" not in st.session_state:
+        st.session_state.pdf_bytes = None
 
 def set_openai_api_key(api_key):
     st.session_state["openai_api_key"] = api_key
