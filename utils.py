@@ -24,8 +24,6 @@ def initialize_session_state():
         st.session_state.chat_placeholder = None
     if "agent" not in st.session_state:
         st.session_state.agent = ConversationalAgent()
-    if "pdf_image" not in st.session_state:
-        st.session_state.pdf_image = None
 
 
 def enterKeypress_submit_button_html():
