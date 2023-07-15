@@ -10,6 +10,7 @@ from streamlit_extras.switch_page_button import switch_page
 from FileReader.pdfFile import PDFDBStore
 
 
+@st.cache_resource
 def save_pdf_image(uploaded_file):
     pdf_bytes = uploaded_file.getvalue()
     doc = fitz.open(stream=pdf_bytes, filetype="pdf")
@@ -50,9 +51,6 @@ def initialize_session_state():
 
     if "document_chunks" not in st.session_state:
         st.session_state.document_chunks = None
-
-    if "pdf_bytes" not in st.session_state:
-        st.session_state.pdf_bytes = None
 
 
 def set_openai_api_key(api_key):
@@ -124,4 +122,6 @@ if uploaded_file is not None:
             save_pdf_image(uploaded_file)
 
         st.success("PDF uploaded successfully!")
+        save_vector_store(pdfDB)
+        save_pdf_image(uploaded_file)
         switch_page("results")
