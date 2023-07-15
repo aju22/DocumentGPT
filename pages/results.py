@@ -25,14 +25,20 @@ with tab1:
     col1, col2, col3 = st.columns([0.5, 9, 0.5])
 
     with col2:
-        container_height = 700
-        image_bytes = st.session_state.pdf_image
-        img_html = f'<img src="data:image/png;base64,{image_bytes}"/>'
-        st.markdown(
-            f'<div style="height: {container_height}px; overflow-y: scroll; overflow-x: hidden; text-align: center; '
-            f'border: 5px solid #888888; border-radius: 4px;">{img_html}</div>',
-            unsafe_allow_html=True,
-        )
+        # container_height = 700
+        # image_bytes = st.session_state.pdf_image
+        # img_html = f'<img src="data:image/png;base64,{image_bytes}"/>'
+        # st.markdown(
+        #     f'<div style="height: {container_height}px; overflow-y: scroll; overflow-x: hidden; text-align: center; '
+        #     f'border: 5px solid #888888; border-radius: 4px;">{img_html}</div>',
+        #     unsafe_allow_html=True,
+        # )
+
+        pdf_bytes = st.session_state["pdf_bytes"]
+        base64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
+        pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="900" height="800" ' \
+                      f'type="application/pdf"></iframe> '
+        st.markdown(pdf_display, unsafe_allow_html=True)
 
 with tab2:
     st.subheader("Google Results")
