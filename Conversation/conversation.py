@@ -6,13 +6,12 @@ import openai
 import streamlit as st
 
 from langchain import LLMChain
-from langchain.agents import ZeroShotAgent, Tool, initialize_agent, AgentExecutor
+from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
 from langchain.callbacks import get_openai_callback
 
 from langchain.chat_models import ChatOpenAI
 from langchain.memory import ConversationBufferWindowMemory
 from langchain.callbacks import StreamlitCallbackHandler
-from langchain.schema.output_parser import OutputParserException
 
 from CustomTools.tools import LookupTool, WebSearchTool, SummarizationTool, ArxivTool
 
@@ -106,11 +105,13 @@ class ConversationalAgent:
             verbose=False
         )
 
-        prefix = """You are a Proffessional Teacher Chatbot. Have a conversation with a human, who is your student, over an academic topic from the database of documents,
-                    you are provided with for answering the questions as best, academically and elaborately as you can.
-                    If you cannot find a clear answer from the database of documents, check for Online research paper database to see if you can get relevant research papers.
-                    Only when you cannot gather enough information from both these methods
-                    ,to gather in-depth knowledge,you may take help of the regular internet search to get results from general web articles.
+        prefix = """You are a Compassionate Teacher Chatbot. Engage in a conversation with a human student about an academic topic using the knowledge you have from a database of documents. 
+                    Your goal is to provide answers in the friendliest and most easily understandable manner, making complex subjects relatable to even a 5-year-old child. Utilize examples and 
+                    detailed explanations to ensure comprehensive understanding of the topic being discussed. Begin by searching for answers and relevant examples within the database of PDF pages 
+                    (documents) provided. If you are unable to find sufficient information, you may consult the online research paper database Arxiv to gather additional knowledge and understanding 
+                    from research papers. Only when you still lack the necessary information, you may use a general internet search to find results from web articles. However, always prioritize providing 
+                    answers and examples from the database and research papers before resorting to general internet search.
+                    You should always provide the final answer as bullet points, for the easier understanding and readability of student.
 
                     You have access to the following tools: """
 
@@ -120,10 +121,10 @@ class ConversationalAgent:
         Thought: you should always think about what to do
         Action: the action to take, should be one of [{tool_names}]
         Action Input: the input to the action
-        Observation: the result of the action
+        Observation: the detailed,at most comprehensive result of the action
         ... (this Thought/Action/Action Input/Observation can repeat N times)
-        Thought: I now know the final answer based on my observation.
-        Final Answer: the final answer to the original input question is the exact complete detailed explanation from the Observation"""
+        Thought: I now know the final answer based on my observation
+        Final Answer: the final answer to the original input question is the full detailed explanation from the Observation provided as bullet points."""
 
         suffix = """Begin!"
 
@@ -141,14 +142,17 @@ class ConversationalAgent:
 
         def _handle_error(error) -> str:
             INSTRUCTIONS = """Use the following format:
+            
+                  Thought: you should always think about what to do
+                  Action: the action to take, should be one of [{tool_names}]
+                  Action Input: the input to the action  
+                  Observation: the detailed, comprehensive result of the action
+                  Thought: I now know the final answer based on my observation
+                  Final Answer: the final answer to the original input question is the full detailed explanation from the Observation provided as bullet points."""
 
-            Observation: the result of the action
-            Thought: I now know the final answer based on my observation
-            Final Answer: the final answer to the original input question is the detailed explanation from the Observation"""
+            ouput = str(error).removeprefix("Could not parse LLM output: `").removesuffix("`")
 
-            output = str(error).removeprefix("Could not parse LLM output: `").removesuffix("`")
-
-            response = f"Thought: {output}\nThe above completion did not satisfy the Format Instructions given in the Prompt.\nFormat Instructions: {INSTRUCTIONS}\nPlease try again and conform to the format."
+            response = f"Thought: {ouput}\nThe above completion did not satisfy the Format Instructions given in the Prompt.\nFormat Instructions: {INSTRUCTIONS}\nPlease try again and conform to the format."
             # print("error msg: ", response)
             return response
 
