@@ -1,6 +1,6 @@
 # DocumentGPT
 
-DocumentGPT is a web application that allows you to chat over your research document using OpenAI's Chat API and perform semantic search using vector databases. This tool provides a seamless interface for interacting with your research document, exploring search results, and engaging in a conversation with an AI chatbot.
+DocumentGPT is a web application that allows you to chat over your research document using OpenAI's Chat API and perform semantic search using Vector Databases. This tool provides a seamless interface for interacting with your research document, exploring search results, and engaging in a conversation with an AI chatbot.
 
 ## Features
 
